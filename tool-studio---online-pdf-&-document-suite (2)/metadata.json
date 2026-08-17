@@ -1,0 +1,6 @@
+{
+  "name": "Tool Studio - Online PDF & Document Suite",
+  "description": "Professional high-speed suite of interactive online PDF and document tools featuring merge, split, edit, compress, e-sign, watermarking, drag-and-drop uploads, Razorpay payments, and AdSense integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
