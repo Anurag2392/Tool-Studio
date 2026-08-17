@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -94,16 +95,18 @@ async function sendEmailNotification(to: string, subject: string, text: string, 
 const app = express();
 const PORT = 3000;
 
-// Security headers middleware (OWASP Compliant)
+// Security headers middleware (OWASP & Lighthouse Compliant)
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)");
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://adservice.google.com https://*.googleadservices.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https: https://pagead2.googlesyndication.com https://pagead2.googleadservices.com; frame-src 'self' https: https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.googlesyndication.com;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://adservice.google.com https://*.googleadservices.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https: https://pagead2.googlesyndication.com https://pagead2.googleadservices.com; frame-src 'self' https: https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.googlesyndication.com; object-src 'none';"
   );
   next();
 });
@@ -124,6 +127,21 @@ app.get("/api/adsense-config", (req, res) => {
   });
 });
 
+// Google Search Console Site Verification HTML file endpoint
+app.get("/googleVk3JZtCb9ItWfTSvQVC-QOoDKQsPktANSLoM8eKAbkM.html", (req, res) => {
+  res.type("text/html");
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  res.send("google-site-verification: googleVk3JZtCb9ItWfTSvQVC-QOoDKQsPktANSLoM8eKAbkM.html\n");
+});
+
+// Dynamic handler for any Google verification file format
+app.get(/^\/google([a-zA-Z0-9_-]+)\.html$/, (req, res) => {
+  const code = req.params[0] || "Vk3JZtCb9ItWfTSvQVC-QOoDKQsPktANSLoM8eKAbkM";
+  res.type("text/html");
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  res.send(`google-site-verification: google${code}.html\n`);
+});
+
 // Explicit AdSense ads.txt verification endpoint
 app.get("/ads.txt", (req, res) => {
   res.type("text/plain");
@@ -133,11 +151,51 @@ app.get("/ads.txt", (req, res) => {
   res.send(`# Tool Studio Google AdSense Seller Verification\ngoogle.com, ${pubCode}, DIRECT, f08c47fec0942fa0\n`);
 });
 
-// Explicit robots.txt endpoint for AdSense crawler verification
+// Explicit sitemap.xml endpoint for Google Search Console and crawlers
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml");
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
+  if (fs.existsSync(sitemapPath)) {
+    res.sendFile(sitemapPath);
+  } else {
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://tool-studio.in/</loc>
+    <lastmod>2026-08-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+  }
+});
+
+// Explicit robots.txt endpoint for Google Search Console and AdSense crawler verification
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");
   res.setHeader("Cache-Control", "public, max-age=86400");
-  res.send(`User-agent: *\nAllow: /\nDisallow: /api/\n\nUser-agent: Mediapartners-Google\nAllow: /\n\nUser-agent: Googlebot\nAllow: /\n\nSitemap: https://tool-studio.in/sitemap.xml\n`);
+  res.send(`User-agent: *
+Allow: /
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://tool-studio.in/sitemap.xml
+`);
 });
 
 // Initialize Gemini Client safely
@@ -842,8 +900,19 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    app.use(
+      express.static(distPath, {
+        maxAge: "1y",
+        immutable: true,
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith(".html")) {
+            res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+          }
+        },
+      })
+    );
     app.get("*", (req, res) => {
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

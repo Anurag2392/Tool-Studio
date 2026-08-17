@@ -17,10 +17,20 @@ export default defineConfig(() => {
       },
     },
     build: {
-      sourcemap: false,
+      sourcemap: true,
       minify: 'esbuild' as const,
       cssMinify: true,
       reportCompressedSize: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-pdf': ['pdf-lib'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-zip': ['jszip'],
+          },
+        },
+      },
     },
     esbuild: {
       drop: ['console', 'debugger'] as ('console' | 'debugger')[],

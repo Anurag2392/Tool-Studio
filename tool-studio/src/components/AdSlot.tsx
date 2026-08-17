@@ -49,12 +49,12 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   return (
     <div className={`my-6 relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs transition-all ${className}`}>
       {/* Header Badge */}
-      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2 pb-2 mb-2 border-b border-slate-100">
-        <span className="flex items-center gap-1.5 text-slate-700">
-          <Megaphone size={12} className="text-emerald-600" />
+      <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 uppercase tracking-wider px-2 pb-2 mb-2 border-b border-slate-100">
+        <span className="flex items-center gap-1.5 text-slate-800">
+          <Megaphone size={12} className="text-emerald-700" />
           {label}
         </span>
-        <span className="text-[10px] text-slate-400 font-medium">
+        <span className="text-[10px] text-slate-600 font-bold">
           ADVERTISEMENT
         </span>
       </div>

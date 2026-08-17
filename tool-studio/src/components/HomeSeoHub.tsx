@@ -182,7 +182,7 @@ export const HomeSeoHub: React.FC<HomeSeoHubProps> = () => {
       {/* 2. Frequently Asked Questions (FAQ) Section for Search Snippets */}
       <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 space-y-6 shadow-2xs">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-200">
+          <span className="text-[10px] font-extrabold text-emerald-900 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-300">
             SEO Knowledge Base
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 pt-2">

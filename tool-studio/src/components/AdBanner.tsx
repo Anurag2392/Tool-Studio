@@ -124,12 +124,12 @@ export const AdBanner: React.FC<AdBannerProps> = ({
 
   return (
     <div className={`my-4 relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 shadow-2xs transition-all ${className}`}>
-      <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium px-2 pb-1.5 border-b border-slate-100">
-        <span className="flex items-center gap-1.5 font-bold text-slate-700">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <div className="flex items-center justify-between text-[11px] text-slate-700 font-medium px-2 pb-1.5 border-b border-slate-100">
+        <span className="flex items-center gap-1.5 font-bold text-slate-800">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
           SPONSORED ADVERTISEMENT
         </span>
-        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+        <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">
           GOOGLE ADSENSE
         </span>
       </div>

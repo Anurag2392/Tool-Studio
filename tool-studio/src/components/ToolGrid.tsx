@@ -185,13 +185,13 @@ export const ToolGrid: React.FC<ToolGridProps> = React.memo(({
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           <button
             onClick={() => onSelectTool('merge')}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm shadow-emerald-500/20 cursor-pointer"
+            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm shadow-emerald-700/20 cursor-pointer"
           >
             <Combine size={14} /> Merge PDF
           </button>
           <button
             onClick={() => onSelectTool('image-compressor-kb')}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm shadow-indigo-500/20 cursor-pointer"
+            className="px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm shadow-indigo-700/20 cursor-pointer"
           >
             <ImageIcon size={14} /> Compress to KB
           </button>
@@ -209,7 +209,7 @@ export const ToolGrid: React.FC<ToolGridProps> = React.memo(({
           </button>
           <button
             onClick={() => onSelectTool('ai-summarize')}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm shadow-purple-500/20 cursor-pointer"
+            className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm shadow-purple-700/20 cursor-pointer"
           >
             <Sparkles size={14} /> AI Assistant
           </button>
@@ -223,7 +223,7 @@ export const ToolGrid: React.FC<ToolGridProps> = React.memo(({
       <RecentFilesModule onSelectTool={onSelectTool} />
 
       {/* Category Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 border-b border-slate-200 pb-3">
+      <div id="tour-category-navigation" data-tour="navigation" className="flex flex-wrap items-center justify-center gap-2 border-b border-slate-200 pb-3">
         {categories.map((cat) => (
           <button
             key={cat.id}
@@ -269,7 +269,7 @@ export const ToolGrid: React.FC<ToolGridProps> = React.memo(({
                     </div>
                   </div>
 
-                  <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200/80">
+                  <span className="text-xs font-extrabold text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-300">
                     {toolCount} {toolCount === 1 ? 'Tool' : 'Tools'}
                   </span>
                 </div>

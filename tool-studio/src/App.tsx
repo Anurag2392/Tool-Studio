@@ -6,10 +6,21 @@ import { Footer } from './components/Footer';
 import { ToolGrid } from './components/ToolGrid';
 import { AdBanner } from './components/AdBanner';
 import { AdSlot } from './components/AdSlot';
-import { ADSENSE_CONFIG, ensureAdSenseScriptLoaded } from './config/adsense';
+import { 
+  ADSENSE_CONFIG, 
+  ensureAdSenseScriptLoaded, 
+  notifyToolInteraction, 
+  purgeAdRelatedCookies, 
+  setAnonymousMode, 
+  onSensitivePdfTaskComplete 
+} from './config/adsense';
+import { injectSecurityMetaTags } from './utils/securityMetaHelper';
+import { GOOGLE_VERIFICATION_CONFIG, updateDocumentSeoMeta, DEFAULT_SITE_SEO } from './config/seoConfig';
+import { registerServiceWorker } from './utils/serviceWorkerRegistration';
 import { PricingModal } from './components/PricingModal';
 import { SeoDrawer } from './components/SeoDrawer';
 import { SeoContentSection } from './components/SeoContentSection';
+import { OnboardingTour, useOnboardingTour } from './components/OnboardingTour';
 
 // New Modals for Login, PhonePe & AdSense
 import { LoginModal, UserAccount } from './components/LoginModal';
@@ -48,10 +59,12 @@ import { ToolSkeletonLoader } from './components/ToolSkeletonLoader';
 import { SeoSettingsModal } from './components/SeoSettingsModal';
 import { Breadcrumb } from './components/Breadcrumb';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { WifiOff, Wifi } from 'lucide-react';
 
 export default function App() {
   const [currentToolId, setCurrentToolId] = useState<ToolId | null>(null);
   const [isToolLoading, setIsToolLoading] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showSeoDrawer, setShowSeoDrawer] = useState(false);
@@ -60,6 +73,25 @@ export default function App() {
   const [showPhonePeModal, setShowPhonePeModal] = useState(false);
   const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [pendingPaymentFlow, setPendingPaymentFlow] = useState(false);
+
+  // New Visitor Onboarding Tour State Hook
+  const { showTour, restartTour, closeTour } = useOnboardingTour();
+
+  // Register Offline Service Worker on mount and listen for connectivity changes
+  useEffect(() => {
+    registerServiceWorker();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const handleOpenPhonePe = () => {
     if (!userAccount.isLoggedIn) {
@@ -336,12 +368,21 @@ export default function App() {
     };
   });
 
-  // Dynamically load AdSense meta and script in production runtime
+  // Dynamically inject Content Security Policy & Security Meta Tags on application mount
   useEffect(() => {
-    if (adConfig.enabled) {
-      ensureAdSenseScriptLoaded(adConfig.publisherId);
+    injectSecurityMetaTags({
+      enableStrictCSP: true,
+      enableHSTS: true,
+      allowAdSense: adConfig.enabled,
+    });
+  }, [adConfig.enabled]);
+
+  // Privacy-First AdSense: Only initialize script after user interactions if ads enabled
+  useEffect(() => {
+    if (adConfig.enabled && !userPlan.isPro && currentToolId) {
+      ensureAdSenseScriptLoaded(adConfig.publisherId, false);
     }
-  }, [adConfig.enabled, adConfig.publisherId]);
+  }, [adConfig.enabled, adConfig.publisherId, userPlan.isPro, currentToolId]);
 
   // Handle successful PhonePe Upgrade or manual Pro upgrade
   const handleUpgradeUser = (planName: '1 Day Pro Pass' | 'Pro Monthly' | 'Pro Annual') => {
@@ -412,8 +453,11 @@ export default function App() {
     }
   };
 
-  // Called whenever a tool runs or succeeds - increments daily limit for free users
+  // Called whenever a tool runs or succeeds - increments daily limit and purges tracking cookies for sensitive tasks
   const handleRecordToolUsage = () => {
+    // Privacy-First: purge any transient tracking cookies when document processing completes
+    onSensitivePdfTaskComplete();
+
     setAdConfig((prev) => ({
       ...prev,
       simulatedImpressions: prev.simulatedImpressions + 1,
@@ -462,36 +506,18 @@ export default function App() {
 
   const activeToolMeta = TOOLS_LIST.find((t) => t.id === currentToolId);
 
-  // Dynamic SEO Title, Meta Description, Canonical & OpenGraph Tag Manager
+  // Sanitized Dynamic SEO Title, Meta Description, Canonical & OpenGraph Tag Manager
   useEffect(() => {
     if (activeToolMeta) {
-      document.title = `${activeToolMeta.name} - Free Online Tool | Tool Studio`;
-      
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', `${activeToolMeta.seoTitle || activeToolMeta.shortDesc} Fast, browser-isolated, 100% free online tool by Tool Studio.`);
-      }
-
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute('content', `${activeToolMeta.name} - Free Online Document Tool | Tool Studio`);
-
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) ogDesc.setAttribute('content', activeToolMeta.shortDesc || activeToolMeta.longDesc);
-
-      const canonical = document.querySelector('link[rel="canonical"]');
-      if (canonical) canonical.setAttribute('href', `https://tool-studio.in/#tool-${activeToolMeta.id}`);
+      updateDocumentSeoMeta({
+        title: `${activeToolMeta.name} - Free Online Tool | Tool Studio`,
+        description: `${activeToolMeta.seoTitle || activeToolMeta.shortDesc} Fast, browser-isolated, 100% free online tool by Tool Studio.`,
+        ogTitle: `${activeToolMeta.name} - Free Online Document Tool | Tool Studio`,
+        ogDescription: activeToolMeta.shortDesc || activeToolMeta.longDesc,
+        canonicalUrl: `https://tool-studio.in/#tool-${activeToolMeta.id}`,
+      });
     } else {
-      document.title = 'Tool Studio - Complete Free Online Document & PDF Suite';
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', 'Tool Studio is a fast, 100% browser-secure online document suite. Merge, split, compress, edit, OCR, e-sign & summarize PDFs without software installation. Contact: support@tool-studio.in');
-      }
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute('content', 'Tool Studio - High-Speed Online Document & PDF Tools');
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) ogDesc.setAttribute('content', 'Merge, split, edit, compress, e-sign, and summarize PDF files securely in your browser using Gemini AI. 100% free and private.');
-      const canonical = document.querySelector('link[rel="canonical"]');
-      if (canonical) canonical.setAttribute('href', 'https://tool-studio.in/');
+      updateDocumentSeoMeta(DEFAULT_SITE_SEO);
     }
   }, [activeToolMeta]);
 
@@ -511,6 +537,7 @@ export default function App() {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#tool-', '');
       if (hash && TOOLS_LIST.some((t) => t.id === hash)) {
+        notifyToolInteraction();
         setIsToolLoading(true);
         setCurrentToolId(hash as ToolId);
         setTimeout(() => setIsToolLoading(false), 280);
@@ -537,6 +564,10 @@ export default function App() {
       if (!userPlan.isPro && userPlan.dailyLimitUsed >= 3) {
         setShowProUpsellModal(true);
         return;
+      }
+      notifyToolInteraction();
+      if (adConfig.enabled && !userPlan.isPro) {
+        ensureAdSenseScriptLoaded(adConfig.publisherId, true);
       }
       setIsToolLoading(true);
       setCurrentToolId(id);
@@ -580,6 +611,34 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        {/* OFFLINE CAPABILITY STATUS BANNER */}
+        {isOffline && (
+          <div className="bg-amber-950/90 border-2 border-amber-500/80 text-amber-100 rounded-2xl p-4 sm:p-5 shadow-xl animate-in fade-in slide-in-from-top-3 duration-300">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md">
+                  <WifiOff size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-sm text-white">Offline Mode Active</span>
+                    <span className="bg-amber-400/20 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-md border border-amber-500/40 uppercase">
+                      100% Client-Side Ready
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-200/90 mt-0.5">
+                    Your internet connection is offline. PDF tools (Merge, Split, Compress, Annotate, Sign) and the tool directory remain fully functional in your browser.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-[11px] font-bold text-amber-300/80 bg-amber-900/40 px-3 py-1.5 rounded-lg border border-amber-500/20 shrink-0">
+                Service Worker Cached
+              </div>
+            </div>
+          </div>
+        )}
         
 
         {/* ADMIN AUTHORIZATION CONFIRMATION BANNER */}
@@ -652,15 +711,6 @@ export default function App() {
           </div>
         )}
         
-        {/* High Visibility Header AdSlot */}
-        {adConfig.enabled && (
-          <AdSlot
-            slot={ADSENSE_CONFIG.slots.header}
-            label="SPONSORED GOOGLE ADSENSE"
-            className="max-w-7xl mx-auto"
-          />
-        )}
-
         {/* If no tool selected, render Directory Grid */}
         {!currentToolId ? (
           <ToolGrid
@@ -881,7 +931,6 @@ export default function App() {
         onSelectTool={handleSelectTool}
         onOpenSeo={() => setShowSeoDrawer(true)}
         onOpenSeoSettings={() => setShowSeoSettingsModal(true)}
-        onOpenAdSenseSettings={() => setShowAdSenseModal(true)}
         onOpenPricing={() => setShowPricingModal(true)}
         onOpenHostinger={() => setShowHostingerModal(true)}
         adConfig={adConfig}
@@ -892,6 +941,14 @@ export default function App() {
           setShowLegalModal(true);
         }}
         onOpenAdminEmails={() => setShowAdminEmailModal(true)}
+        onRestartTour={restartTour}
+      />
+
+      {/* New Visitor Interactive Step-by-Step Onboarding Tour */}
+      <OnboardingTour
+        isOpen={showTour}
+        onClose={closeTour}
+        onOpenPhonePe={handleOpenPhonePe}
       />
 
       {/* Modals & Drawers */}

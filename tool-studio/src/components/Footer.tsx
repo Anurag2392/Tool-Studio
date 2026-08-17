@@ -16,6 +16,7 @@ interface FooterProps {
   currentLanguage?: LanguageOption;
   onOpenLegal?: (tab?: 'privacy' | 'terms' | 'security' | 'cookies' | 'privacy-ads') => void;
   onOpenAdminEmails?: () => void;
+  onRestartTour?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -30,6 +31,7 @@ export const Footer: React.FC<FooterProps> = ({
   currentLanguage,
   onOpenLegal,
   onOpenAdminEmails,
+  onRestartTour,
 }) => {
   const [connectEmail, setConnectEmail] = useState('');
   const [connectStatus, setConnectStatus] = useState<string | null>(null);
@@ -109,7 +111,7 @@ export const Footer: React.FC<FooterProps> = ({
                   <button
                     type="submit"
                     disabled={isConnecting}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer shrink-0 disabled:opacity-50 transition-colors"
+                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer shrink-0 disabled:opacity-50 transition-colors"
                   >
                     <Send size={12} /> Connect
                   </button>
@@ -125,7 +127,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Popular PDF Tools Column 1 */}
           <div>
-            <h4 className="text-white text-xs font-extrabold uppercase tracking-wider mb-3">Popular Tools</h4>
+            <h3 className="text-white text-xs font-extrabold uppercase tracking-wider mb-3">Popular Tools</h3>
             <ul className="space-y-2 text-xs font-medium">
               <li>
                 <button onClick={() => onSelectTool('merge')} className="hover:text-emerald-400 transition-colors cursor-pointer">
@@ -157,7 +159,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Organize & Security Column 2 */}
           <div>
-            <h4 className="text-white text-xs font-extrabold uppercase tracking-wider mb-3">Organize & Security</h4>
+            <h3 className="text-white text-xs font-extrabold uppercase tracking-wider mb-3">Organize & Security</h3>
             <ul className="space-y-2 text-xs font-medium">
               <li>
                 <button onClick={() => onSelectTool('organize')} className="hover:text-emerald-400 transition-colors cursor-pointer">
@@ -189,7 +191,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* AI Tools & Features */}
           <div>
-            <h4 className="text-white text-xs font-extrabold uppercase tracking-wider mb-3">AI & Subscriptions</h4>
+            <h3 className="text-white text-xs font-extrabold uppercase tracking-wider mb-3">AI & Subscriptions</h3>
             <ul className="space-y-2 text-xs font-medium">
               <li>
                 <button onClick={() => onSelectTool('ai-summarize')} className="hover:text-purple-400 transition-colors flex items-center gap-1 text-purple-300 font-bold cursor-pointer">
@@ -206,10 +208,10 @@ export const Footer: React.FC<FooterProps> = ({
                   👑 PhonePe Pro Subscriptions
                 </button>
               </li>
-              {onOpenAdSenseSettings && (
+              {onRestartTour && (
                 <li>
-                  <button onClick={onOpenAdSenseSettings} className="hover:text-emerald-400 transition-colors flex items-center gap-1 text-emerald-300 font-bold cursor-pointer">
-                    💰 AdSense Account Settings
+                  <button onClick={onRestartTour} className="hover:text-emerald-400 transition-colors flex items-center gap-1 text-emerald-400 font-bold cursor-pointer">
+                    🚀 Interactive Site Tour
                   </button>
                 </li>
               )}
@@ -226,36 +228,36 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Bottom Rights */}
-        <div className="pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <div className="pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p>© {new Date().getFullYear()} Tool Studio. All rights reserved. High-speed document tools.</p>
           <div className="flex flex-wrap items-center gap-4 font-medium">
             <button
               onClick={() => onOpenLegal && onOpenLegal('privacy-ads')}
-              className="hover:text-amber-400 text-amber-300 font-bold cursor-pointer flex items-center gap-1"
+              className="hover:text-amber-300 text-amber-400 font-bold cursor-pointer flex items-center gap-1"
             >
               Privacy & Ads
             </button>
             <button
               onClick={() => onOpenLegal && onOpenLegal('terms')}
-              className="hover:text-slate-300 cursor-pointer"
+              className="text-slate-400 hover:text-white cursor-pointer"
             >
               Terms of Service
             </button>
             <button
               onClick={() => onOpenLegal && onOpenLegal('privacy')}
-              className="hover:text-slate-300 cursor-pointer"
+              className="text-slate-400 hover:text-white cursor-pointer"
             >
               Privacy Policy
             </button>
             <button
               onClick={() => onOpenLegal && onOpenLegal('security')}
-              className="hover:text-slate-300 cursor-pointer"
+              className="text-slate-400 hover:text-white cursor-pointer"
             >
               Security & GDPR
             </button>
             <button
               onClick={() => onOpenLegal && onOpenLegal('cookies')}
-              className="hover:text-slate-300 cursor-pointer"
+              className="text-slate-400 hover:text-white cursor-pointer"
             >
               Cookie Settings
             </button>

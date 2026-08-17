@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             </button>
 
             {/* Tools Mega Dropdown Trigger */}
-            <div className="relative hidden md:flex items-center gap-2">
+            <div id="tour-navigation" data-tour="navigation" className="relative hidden md:flex items-center gap-2">
               <button
                 onClick={() => setShowToolsDropdown(!showToolsDropdown)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
@@ -242,7 +242,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-xs hidden sm:block relative">
+          <div id="tour-search-bar" data-tour="search" className="flex-1 max-w-xs hidden sm:block relative">
             <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
             <input
               type="text"
@@ -281,6 +281,8 @@ export const Header: React.FC<HeaderProps> = React.memo(({
 
             {/* PhonePe Upgrade & Daily Usage Status Button */}
             <button
+              id="tour-pro-button"
+              data-tour="pro-upgrade"
               onClick={onOpenPhonePe}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-xs active:scale-95 transition-all cursor-pointer ${
                 userPlan.isPro
