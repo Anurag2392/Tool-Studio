@@ -1,0 +1,3 @@
+# Google AdSense Authorized Digital Sellers (ads.txt) for Tool Studio
+# Configure your active Publisher ID in Tool Studio AdSense Settings Modal
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
